@@ -1,0 +1,17 @@
+{
+  "extends": "solhint:recommended",
+  "rules": {
+    "indent": ["error", 2],
+    "quotes": ["error", "double"],
+    "max-states-count": ["error", 30],
+    "max-len": ["error", { "code": 120 }],
+    "visibility-modifier-order": ["error"],
+    "linebreak-style": ["error", "unix"],
+    "state-visibility": ["error"],
+    "order-inheritance": ["error"],
+    "custom-fallback-function": ["error"],
+    "no-console": "off",
+    "no-empty-blocks": ["error"],
+    "no-unused-vars": ["error"]
+  }
+}

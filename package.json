@@ -1,0 +1,55 @@
+{
+  "name": "solidity-hardhat-boilerplate",
+  "version": "1.1.0",
+  "description": "Boilerplate solidity by hardhat",
+  "scripts": {
+    "hardhat:node": "hardhat node",
+    "hardhat:compile": "hardhat compile",
+    "hardhat:compile:force": "hardhat compile --force",
+    "hardhat:test": "hardhat test",
+    "hardhat:test:gas": "REPORT_GAS=true hardhat test",
+    "hardhat:deploy:localhost": "hardhat run scripts/deploy.ts --network localhost",
+    "hardhat:deploy:sepolia": "hardhat run scripts/deploy.ts --network sepolia",
+    "hardhat:verify:sepolia": "hardhat verify --network sepolia <address>",
+    "lint:sol": "solhint 'contracts/**/*.sol'",
+    "lint:ts": "eslint 'test/**/*.{js,ts}'",
+    "format": "prettier --write 'contracts/**/*.sol' 'test/**/*.ts' 'scripts/**/*.ts'",
+    "prepare": "husky install",
+    "release": "standard-version --infile docs/CHANGELOG.md"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:uamedwed/solidity-hardhat-boilerplate.git"
+  },
+  "keywords": [
+    "boilerplate"
+  ],
+  "author": "Mykhailo Kudriashev",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/uamedwed/solidity-hardhat-boilerplate/issues"
+  },
+  "homepage": "https://github.com/uamedwed/solidity-hardhat-boilerplatee#readme",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "hardhat": "^2.12.0"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^8.1.0",
+    "@nomicfoundation/hardhat-ethers": "^3.0.4",
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.3",
+    "@typescript-eslint/parser": "^6.7.3",
+    "chai": "^4.3.8",
+    "dotenv": "^16.3.1",
+    "eslint": "^8.50.0",
+    "ethers": "^6.7.1",
+    "hardhat": "^2.17.3",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.0.2",
+    "prettier": "^3.0.3",
+    "prettier-plugin-solidity": "^1.1.3",
+    "solhint": "^3.6.2",
+    "standard-version": "^9.5.0"
+  }
+}
