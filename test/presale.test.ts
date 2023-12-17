@@ -106,6 +106,17 @@ describe('Presale', function () {
       ])
     })
 
+    it('Should emit the correct event after changing settings', async function () {
+      const newStartDate = Math.floor((new Date().getTime() + 3 * 60 * 60 * 1000) / 1000).toFixed(0)
+      const newEndDate = Math.floor((new Date().getTime() + 15 * 24 * 60 * 60 * 1000) / 1000)
+      const newMaxRegistrations = 12
+
+      const oldSettings = await presale.getSettings()
+      await expect(presale.connect(owner).setSettings(newStartDate, newEndDate, newMaxRegistrations))
+        .to.emit(presale, 'ChangedSettings')
+        .withArgs(oldSettings[0], newStartDate, oldSettings[1], newEndDate, oldSettings[2], newMaxRegistrations)
+    })
+
     it('Should allow change settings', async function () {
       const newStartDate = Math.floor((new Date().getTime() + 3 * 60 * 60 * 1000) / 1000).toFixed(0)
       const newEndDate = Math.floor((new Date().getTime() + 15 * 24 * 60 * 60 * 1000) / 1000)
@@ -118,7 +129,7 @@ describe('Presale', function () {
       ])
     })
 
-    it('Should not change small count of max registrations', async function () {
+    it('Should not allow to change small count of max registrations', async function () {
       await presale.connect(owner).setSettings(startDate, endDate, 2)
       await presale.connect(addr1).register()
       await presale.connect(addr2).register()
