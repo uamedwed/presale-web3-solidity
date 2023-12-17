@@ -1,6 +1,6 @@
 {
   "name": "presale-web3-solidity",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Registration on presale",
   "scripts": {
     "hardhat:node": "hardhat node",
