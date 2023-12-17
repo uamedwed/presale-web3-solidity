@@ -1,7 +1,7 @@
 {
-  "name": "solidity-hardhat-boilerplate",
-  "version": "1.1.0",
-  "description": "Boilerplate solidity by hardhat",
+  "name": "presale-web3-solidity",
+  "version": "1.0.0",
+  "description": "Registration on presale",
   "scripts": {
     "hardhat:node": "hardhat node",
     "hardhat:compile": "hardhat compile",
@@ -19,17 +19,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:uamedwed/solidity-hardhat-boilerplate.git"
+    "url": "git@github.com:uamedwed/presale-web3-solidity.git"
   },
   "keywords": [
-    "boilerplate"
+    "presale"
   ],
   "author": "Mykhailo Kudriashev",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/uamedwed/solidity-hardhat-boilerplate/issues"
+    "url": "https://github.com/uamedwed/presale-web3-solidity/issues"
   },
-  "homepage": "https://github.com/uamedwed/solidity-hardhat-boilerplatee#readme",
+  "homepage": "https://github.com/uamedwed/presale-web3-solidity#readme",
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.0",
     "hardhat": "^2.12.0"

@@ -1,4 +1,4 @@
-# solidity-hardhat-boilerplate
+# presale-web3-solidity
 
 ## Description
 Application template
@@ -42,13 +42,13 @@ The project has the following structure:
 ### Clone the Repository
 Clone the repository using the following command:
 ```bash
-git clone https://github.com/uamedwed/solidity-hardhat-boilerplate.git
+git clone https://github.com/uamedwed/presale-web3-solidity.git
 ```
 
 ### Navigate to the Project Directory
 Navigate to the project directory using the following command:
 ```bash
-cd solidity-hardhat-boilerplate
+cd presale-web3-solidity
 ```
 
 ### Install Dependencies
@@ -134,7 +134,7 @@ npm run release
 ```
 
 ## Contributing
-If you'd like to contribute to this project, please follow the guidelines in [CONTRIBUTING.md](https://github.com/uamedwed/solidity-hardhat-boilerplate/blob/main/CONTRIBUTING.md)
+If you'd like to contribute to this project, please follow the guidelines in [CONTRIBUTING.md](https://github.com/uamedwed/presale-web3-solidity/blob/main/CONTRIBUTING.md)
 
 ## License
 This project is licensed under the MIT License.
