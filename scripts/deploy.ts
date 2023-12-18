@@ -8,8 +8,9 @@ async function main() {
   const startDate = Math.floor((new Date().getTime() - 2 * 60 * 60 * 1000) / 1000).toFixed(0)
   const endDate = Math.floor((new Date().getTime() + 5 * 24 * 60 * 60 * 1000) / 1000)
   const maxRegistrations = 13
+  const registrationFee = ethers.parseEther('0.1')
   const Presale = await ethers.getContractFactory('Presale')
-  const presale = await Presale.deploy(startDate, endDate, maxRegistrations)
+  const presale = await Presale.deploy(startDate, endDate, maxRegistrations, registrationFee)
 
   await presale.waitForDeployment()
 
