@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.2.0](https://github.com/uamedwed/presale-web3-solidity/compare/v1.1.0...v1.2.0) (2023-12-18)
+
+
+### Features
+
+* add basic implementation of payment for registration functionality ([ac0a3a4](https://github.com/uamedwed/presale-web3-solidity/commit/ac0a3a46f9ba9f19a5f1dfe03b24d7dbc5718bc1))
+
+
+### Refactors
+
+* rename functions, comments, errors ([ad9d1c1](https://github.com/uamedwed/presale-web3-solidity/commit/ad9d1c109c38b1746109f7115eabffe2f3b81a3d))
+
 ## 1.1.0 (2023-12-17)
 
 
