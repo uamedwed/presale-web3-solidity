@@ -13,6 +13,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     address user;
     uint timestamp;
     bool isRegistered;
+    uint paidFee;
   }
 
   mapping(address => Registration) public registrations;
@@ -21,6 +22,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   uint public endDate;
   uint public maxRegistrations;
   uint private registrationCount;
+  uint public registrationFee;
 
   /// @notice Error when the user has already been registered in the presale.
   /// @param startDate Start presale after this time.
@@ -46,6 +48,23 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   /// @param newMaxRegistrations Maximum number of registrations in the presale.
   /// @param registrationCount Current number of presale registrations.
   error InvalidMaxRegistrationsUpdate(uint newMaxRegistrations, uint registrationCount);
+
+  /// @notice Value in message is not correct and less than registration fee.
+  /// @param registrationFee Current registration fee.
+  error IncorrectRegistrationFee(uint registrationFee);
+
+  /// @notice Amount is not correct for withdraw.
+  /// @param amount Amount for withdraw.
+  /// @param balance Current balance.
+  error NotEnoughFunds(uint amount, uint balance);
+
+  /// @dev Ensure amount of registration fee.
+  modifier onlyCorrectRegistrationFee() {
+    if (msg.value < registrationFee) {
+      revert IncorrectRegistrationFee(registrationFee);
+    }
+    _;
+  }
 
   /// @dev Ensure user registration one time.
   modifier isRegistered() {
@@ -80,6 +99,14 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     _;
   }
 
+  /// @dev Ensure amount of withdraw.
+  modifier onlyAvailableBalance(uint _amount) {
+    if (_amount > address(this).balance) {
+      revert NotEnoughFunds(_amount, address(this).balance);
+    }
+    _;
+  }
+
   /// @dev Ensure correct number of maximum registrations in changing
   modifier validateMaxRegistrations(uint _maxRegistrations) {
     if (_maxRegistrations < registrationCount) {
@@ -89,7 +116,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   }
 
   /// @notice Emitted when user registered on presale.
-  event Registered(address indexed user, uint timestamp);
+  event Registered(address indexed user, uint timestamp, uint indexed paidFee);
 
   /// @notice Emitted when owner changed settings.
   event ChangedSettings(
@@ -98,14 +125,20 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     uint oldEndDate,
     uint newEndDate,
     uint oldMaxRegistrations,
-    uint maxRegistrations
+    uint maxRegistrations,
+    uint oldRegistrationFee,
+    uint registrationFee
   );
 
-  constructor(uint _startDate, uint _endDate, uint _maxRegistrations) Ownable(msg.sender) {
+  /// @notice Emitted when owner withdraw amount from contract.
+  event Withdrawal(uint indexed amount, uint timestamp);
+
+  constructor(uint _startDate, uint _endDate, uint _maxRegistrations, uint _registrationFee) Ownable(msg.sender) {
     startDate = _startDate;
     endDate = _endDate;
     maxRegistrations = _maxRegistrations;
     registrationCount = 0;
+    registrationFee = _registrationFee;
   }
 
   /// @notice Allows the contract owner to pause all activities in the store.
@@ -119,14 +152,23 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   }
 
   /// @notice Registers a user for the presale if the presale is active, they are not already registered, and the maximum registration limit has not been reached.
-  function register() external isRegistered onlyPresaleActive onlyCorrectRegistrationCount whenNotPaused {
+  function register()
+    external
+    payable
+    onlyCorrectRegistrationFee
+    isRegistered
+    onlyPresaleActive
+    onlyCorrectRegistrationCount
+    whenNotPaused
+  {
     Registration memory registration;
     registration.user = msg.sender;
     registration.timestamp = block.timestamp;
     registration.isRegistered = true;
+    registration.paidFee = msg.value;
     registrationCount++;
     registrations[msg.sender] = registration;
-    emit Registered(msg.sender, block.timestamp);
+    emit Registered(msg.sender, block.timestamp, msg.value);
   }
 
   /// @notice Check registration on presale by address.
@@ -143,22 +185,41 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   function setSettings(
     uint _newStartDate,
     uint _newEndDate,
-    uint _maxRegistrations
+    uint _maxRegistrations,
+    uint _registrationFee
   ) external onlyOwner onlyCorrectDates(_newStartDate, _newEndDate) validateMaxRegistrations(_maxRegistrations) {
     uint oldStartDate = startDate;
     uint oldEndDate = endDate;
     uint oldMaxRegistrations = maxRegistrations;
+    uint oldRegistrationFee = registrationFee;
     startDate = _newStartDate;
     endDate = _newEndDate;
     maxRegistrations = _maxRegistrations;
-    emit ChangedSettings(oldStartDate, _newStartDate, oldEndDate, _newEndDate, oldMaxRegistrations, maxRegistrations);
+    registrationFee = _registrationFee;
+    emit ChangedSettings(
+      oldStartDate,
+      _newStartDate,
+      oldEndDate,
+      _newEndDate,
+      oldMaxRegistrations,
+      maxRegistrations,
+      oldRegistrationFee,
+      registrationFee
+    );
   }
 
   /// @notice Get setting of presale.
   /// @return startDate Start date of Presale.
   /// @return endDate End date of Presale.
   /// @return maxRegistrations Max registrations.
-  function getSettings() external view returns (uint, uint, uint) {
-    return (startDate, endDate, maxRegistrations);
+  function getSettings() external view returns (uint, uint, uint, uint) {
+    return (startDate, endDate, maxRegistrations, registrationFee);
+  }
+
+  /// @notice Withdraw funds from contract.
+  /// @param amount Amount for withdraw
+  function withdrawFunds(uint amount) external onlyAvailableBalance(amount) onlyOwner nonReentrant {
+    Address.sendValue(payable(msg.sender), amount);
+    emit Withdrawal(amount, block.timestamp);
   }
 }
