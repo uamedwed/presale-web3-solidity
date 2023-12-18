@@ -66,7 +66,7 @@ describe('Presale', function () {
       await presale.connect(owner).setSettings(startDate, endDate, newMaxRegistrations)
       await presale.connect(addr1).register()
       await expect(presale.connect(addr2).register())
-        .to.be.revertedWithCustomError(presale, 'CountOfRegistrationsExceeded')
+        .to.be.revertedWithCustomError(presale, 'RegistrationLimitExceeded')
         .withArgs(newMaxRegistrations, newMaxRegistrations)
     })
 
@@ -84,7 +84,7 @@ describe('Presale', function () {
       const tx = await presale.connect(addr1).register()
       const timestamp: any = (await ethers.provider.getBlock(Number(tx.blockNumber)))?.timestamp
       await expect(presale.connect(addr1).register())
-        .to.be.revertedWithCustomError(presale, 'AlreadyRegistered')
+        .to.be.revertedWithCustomError(presale, 'UserAlreadyRegistered')
         .withArgs(userAddress, timestamp)
     })
   })
@@ -134,7 +134,7 @@ describe('Presale', function () {
       await presale.connect(addr1).register()
       await presale.connect(addr2).register()
       await expect(presale.connect(owner).setSettings(startDate, endDate, 1))
-        .to.be.revertedWithCustomError(presale, 'ReducedCountOfRegistrations')
+        .to.be.revertedWithCustomError(presale, 'InvalidMaxRegistrationsUpdate')
         .withArgs(BigInt(1), BigInt(2))
     })
 
@@ -142,7 +142,7 @@ describe('Presale', function () {
       const newStartDate = Math.floor((new Date().getTime() + 3 * 60 * 60 * 1000) / 1000).toFixed(0)
       const newEndDate = Math.floor((new Date().getTime() + 2 * 60 * 60 * 1000) / 1000).toFixed(0)
       await expect(presale.connect(owner).setSettings(newStartDate, newEndDate, 1))
-        .to.be.revertedWithCustomError(presale, 'IncorrectDates')
+        .to.be.revertedWithCustomError(presale, 'PresaleIncorrectDates')
         .withArgs(BigInt(newStartDate), BigInt(newEndDate))
     })
 

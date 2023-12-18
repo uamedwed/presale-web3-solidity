@@ -12,7 +12,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   struct Registration {
     address user;
     uint timestamp;
-    bool isRegister;
+    bool isRegistered;
   }
 
   mapping(address => Registration) public registrations;
@@ -20,37 +20,37 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   uint public startDate;
   uint public endDate;
   uint public maxRegistrations;
-  uint private countOfRegistrations;
+  uint private registrationCount;
 
-  /// @notice Occurs when presale dates incorrect.
+  /// @notice Error when the user has already been registered in the presale.
   /// @param startDate Start presale after this time.
   /// @param endDate End presale after this time.
-  error IncorrectDates(uint startDate, uint endDate);
+  error PresaleIncorrectDates(uint startDate, uint endDate);
 
-  /// @notice Occurs when user already registered.
+  /// @notice User is already registered for the presale.
   /// @param user Address of user registered.
   /// @param timestamp Timestamp of registration.
-  error AlreadyRegistered(address user, uint timestamp);
+  error UserAlreadyRegistered(address user, uint timestamp);
 
   /// @notice Occurs when presale is not active.
   /// @param startDate Start presale after this time.
   /// @param endDate End presale after this time.
   error PresaleIsNotActive(uint startDate, uint endDate);
 
-  /// @notice Occurs registration limit exceeded.
-  /// @param countOfRegistrations Current number of presale registrations.
+  /// @notice Registration limit for the presale has been exceeded.
+  /// @param registrationCount Current number of presale registrations.
   /// @param maxRegistrations Maximum number of registrations in the presale.
-  error CountOfRegistrationsExceeded(uint countOfRegistrations, uint maxRegistrations);
+  error RegistrationLimitExceeded(uint registrationCount, uint maxRegistrations);
 
-  /// @notice Occurs to set the maximum number of registrations less than the current one.
+  /// @notice Error when the new maximum registrations limit is set lower than the current count.
   /// @param newMaxRegistrations Maximum number of registrations in the presale.
-  /// @param countOfRegistrations Current number of presale registrations.
-  error ReducedCountOfRegistrations(uint newMaxRegistrations, uint countOfRegistrations);
+  /// @param registrationCount Current number of presale registrations.
+  error InvalidMaxRegistrationsUpdate(uint newMaxRegistrations, uint registrationCount);
 
   /// @dev Ensure user registration one time.
-  modifier isRegister() {
-    if (registrations[msg.sender].isRegister) {
-      revert AlreadyRegistered({ user: msg.sender, timestamp: registrations[msg.sender].timestamp });
+  modifier isRegistered() {
+    if (registrations[msg.sender].isRegistered) {
+      revert UserAlreadyRegistered({ user: msg.sender, timestamp: registrations[msg.sender].timestamp });
     }
     _;
   }
@@ -60,7 +60,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   /// @param _endDate End presale after this time.
   modifier onlyCorrectDates(uint _startDate, uint _endDate) {
     if (_startDate > _endDate) {
-      revert IncorrectDates({ startDate: _startDate, endDate: _endDate });
+      revert PresaleIncorrectDates({ startDate: _startDate, endDate: _endDate });
     }
     _;
   }
@@ -73,17 +73,17 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
   }
 
   /// @dev Ensure number of maximum registrations.
-  modifier onlyCorrectCountOfRegistrations() {
-    if (countOfRegistrations >= maxRegistrations) {
-      revert CountOfRegistrationsExceeded(countOfRegistrations, maxRegistrations);
+  modifier onlyCorrectRegistrationCount() {
+    if (registrationCount >= maxRegistrations) {
+      revert RegistrationLimitExceeded(registrationCount, maxRegistrations);
     }
     _;
   }
 
   /// @dev Ensure correct number of maximum registrations in changing
-  modifier onlyCorrectCountOfMaxRegistrations(uint _maxRegistrations) {
-    if (_maxRegistrations < countOfRegistrations) {
-      revert ReducedCountOfRegistrations(_maxRegistrations, countOfRegistrations);
+  modifier validateMaxRegistrations(uint _maxRegistrations) {
+    if (_maxRegistrations < registrationCount) {
+      revert InvalidMaxRegistrationsUpdate(_maxRegistrations, registrationCount);
     }
     _;
   }
@@ -105,7 +105,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     startDate = _startDate;
     endDate = _endDate;
     maxRegistrations = _maxRegistrations;
-    countOfRegistrations = 0;
+    registrationCount = 0;
   }
 
   /// @notice Allows the contract owner to pause all activities in the store.
@@ -118,13 +118,13 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     _unpause();
   }
 
-  /// @notice Register on presale by address.
-  function register() external isRegister onlyPresaleActive onlyCorrectCountOfRegistrations whenNotPaused {
+  /// @notice Registers a user for the presale if the presale is active, they are not already registered, and the maximum registration limit has not been reached.
+  function register() external isRegistered onlyPresaleActive onlyCorrectRegistrationCount whenNotPaused {
     Registration memory registration;
     registration.user = msg.sender;
     registration.timestamp = block.timestamp;
-    registration.isRegister = true;
-    countOfRegistrations++;
+    registration.isRegistered = true;
+    registrationCount++;
     registrations[msg.sender] = registration;
     emit Registered(msg.sender, block.timestamp);
   }
@@ -136,7 +136,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     return registrations[_user];
   }
 
-  /// @notice Change setting of presale.
+  /// @notice Updates the settings of the presale, including start date, end date, and maximum number of registrations.
   /// @param _newStartDate New start date of Presale.
   /// @param _newEndDate New end date of Presale.
   /// @param _maxRegistrations New count of max registrations.
@@ -144,12 +144,7 @@ contract Presale is Pausable, Ownable, ReentrancyGuard {
     uint _newStartDate,
     uint _newEndDate,
     uint _maxRegistrations
-  )
-    external
-    onlyOwner
-    onlyCorrectDates(_newStartDate, _newEndDate)
-    onlyCorrectCountOfMaxRegistrations(_maxRegistrations)
-  {
+  ) external onlyOwner onlyCorrectDates(_newStartDate, _newEndDate) validateMaxRegistrations(_maxRegistrations) {
     uint oldStartDate = startDate;
     uint oldEndDate = endDate;
     uint oldMaxRegistrations = maxRegistrations;
