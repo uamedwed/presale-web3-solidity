@@ -1,10 +1,14 @@
-# presale-web3-solidity
+# Presale Contract
 
 ## Description
-Application template
+The `Presale` contract is a Solidity smart contract designed for managing a presale event, particularly suitable for new project launches or token sales. Built on Ethereum, it incorporates features from OpenZeppelin's contracts library, ensuring robust security and functionality.
 
 ## Table of Contents
 
+- [Features](#features)
+- [Key Functions](#key-functions)
+- [Setup and Deployment](#setup-and-deployment)
+- [Security](#security)
 - [Project Structure](#project-structure)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -12,6 +16,39 @@ Application template
 - [License](#license)
 - [Development Team](#development-team)
 - [Acknowledgements](#acknowledgements)
+- [Warning](#warning)
+
+## Features
+- **Pausable**: Integrates the `Pausable` functionality, allowing the contract owner to pause and resume the contract operations.
+- **Two-Step Ownership Transfer**: Utilizes OpenZeppelin's `Ownable2Step` for secure ownership management with a two-step transfer process.
+- **Reentrancy Protection**: Includes `ReentrancyGuard` to prevent against reentrancy attacks during external calls.
+- **Registration Management**: Handles user registrations for the presale, tracking each participant's details including payment.
+- **Presale Time Frame**: Enforces a start and end date for the presale period.
+- **Registration Limits**: Allows setting a maximum number of registrations.
+- **Registration Fee**: Supports the collection of fees for registration in the presale.
+- 
+## Key Functions
+### Registration
+- `register()`: Allows users to register for the presale by paying a registration fee, provided the presale is active and registration limits are not exceeded.
+
+### Admin Controls
+- `setSettings(...)`: Enables the contract owner to update presale settings including dates, maximum registrations, and registration fee.
+- `withdrawFunds(...)`: Allows the owner to withdraw collected funds from the contract.
+
+### Utilities
+- `getSettings()`: Returns the current settings of the presale.
+- `checkRegistration(...)`: Checks the registration details of a given user address.
+
+### Events
+- `Registered`: Emitted when a user successfully registers for the presale.
+- `ChangedSettings`: Emitted when the presale settings are updated.
+- `Withdrawal`: Emitted upon a successful withdrawal of funds by the owner.
+
+## Setup and Deployment
+The contract is constructed with initial settings for the presale period, maximum registrations, and the registration fee. It can be deployed using standard Solidity deployment frameworks like Hardhat or Truffle.
+
+## Security
+This contract is built with security as a priority, leveraging OpenZeppelin's trusted libraries and practices, including Pausable, Ownable2Step, and ReentrancyGuard.
 
 ## Project Structure
 The project has the following structure:
@@ -37,7 +74,6 @@ The project has the following structure:
 ```
 
 ## Installation
-
 
 ### Clone the Repository
 Clone the repository using the following command:
@@ -148,3 +184,6 @@ Special thanks to the following projects and libraries:
 - Solidity
 - Hardhat
 - TypeScript
+
+## Warning
+Note: This contract is a test version and is not intended for production use. Its use is at the user's own risk. The author is not responsible for any consequences associated with its use, including but not limited to financial losses or security breaches. It is recommended to conduct comprehensive testing and, if possible, involve third-party auditors before any use in real-world conditions.
