@@ -9,6 +9,9 @@ describe('Presale', function () {
   let owner: Signer
   let addr1: Signer
   let addr2: Signer
+  let ownerAddress: string
+  let addr1Address: string
+  let addr2Address: string
   const version: number = 1
   const startDate = Math.floor((new Date().getTime() - 2 * 60 * 60 * 1000) / 1000).toFixed(0)
   const endDate = Math.floor((new Date().getTime() + 5 * 24 * 60 * 60 * 1000) / 1000)
@@ -18,6 +21,9 @@ describe('Presale', function () {
   beforeEach(async () => {
     PresaleFactory = await ethers.getContractFactory('Presale')
     ;[owner, addr1, addr2] = await ethers.getSigners()
+    ownerAddress = await owner.getAddress()
+    addr1Address = await addr1.getAddress()
+    addr2Address = await addr2.getAddress()
     presale = (await PresaleFactory.deploy(startDate, endDate, maxRegistrations, registrationFee)) as Presale
   })
 
@@ -27,34 +33,30 @@ describe('Presale', function () {
     })
 
     it('Should set the correct owner', async function () {
-      expect(await presale.owner()).to.equal(await owner.getAddress())
+      expect(await presale.owner()).to.equal(ownerAddress)
     })
   })
 
   describe('Registration users', function () {
     it('Should register user on Presale', async function () {
       await presale.connect(addr1).register({ value: registrationFee })
-      expect((await presale.connect(addr1).checkRegistration(await addr1.getAddress())).user).to.equal(
-        await addr1.getAddress()
-      )
+      expect((await presale.connect(addr1).checkRegistration(addr1Address)).user).to.equal(addr1Address)
     })
 
     it('Should correct struct and checking of registration on Presale', async function () {
-      const userAddress = await addr1.getAddress()
       const tx = await presale.connect(addr1).register({ value: registrationFee })
       const timestamp: any = (await ethers.provider.getBlock(Number(tx.blockNumber)))?.timestamp
-      expect(await presale.connect(addr1).checkRegistration(userAddress)).to.include.members([
-        userAddress,
+      expect(await presale.connect(addr1).checkRegistration(addr1Address)).to.include.members([
+        addr1Address,
         BigInt(timestamp),
         true
       ])
     })
 
     it('Should emit the correct event after registration', async function () {
-      const userAddress = await addr1.getAddress()
       const tx = await presale.connect(addr1).register({ value: registrationFee })
       const timestamp: any = (await ethers.provider.getBlock(Number(tx.blockNumber)))?.timestamp
-      expect(tx).to.emit(presale, 'Registered').withArgs(userAddress, timestamp, registrationFee)
+      expect(tx).to.emit(presale, 'Registered').withArgs(addr1Address, timestamp, registrationFee)
     })
 
     it('Should not allow register if presale is paused', async function () {
@@ -84,22 +86,20 @@ describe('Presale', function () {
     })
 
     it('Should not allow register if user registered', async function () {
-      const userAddress = await addr1.getAddress()
       const tx = await presale.connect(addr1).register({ value: registrationFee })
       const timestamp: any = (await ethers.provider.getBlock(Number(tx.blockNumber)))?.timestamp
       await expect(presale.connect(addr1).register({ value: registrationFee }))
         .to.be.revertedWithCustomError(presale, 'UserAlreadyRegistered')
-        .withArgs(userAddress, timestamp)
+        .withArgs(addr1Address, timestamp)
     })
 
     it('Should buy product by ETH with correct balances', async function () {
-      const userAddress = await addr1.getAddress()
-      const initialUserBalance = await ethers.provider.getBalance(userAddress)
+      const initialUserBalance = await ethers.provider.getBalance(addr1Address)
       const initialContractBalance = await ethers.provider.getBalance(presale.target)
       const tx = await presale.connect(addr1).register({ value: registrationFee })
       const txReceipt: any = await tx.wait()
       const gasUsed = txReceipt.gasUsed * tx.gasPrice
-      const currentUserBalance = await ethers.provider.getBalance(userAddress)
+      const currentUserBalance = await ethers.provider.getBalance(addr1Address)
       const currentContractBalance = await ethers.provider.getBalance(presale.target)
       expect(currentUserBalance).to.equal(initialUserBalance - registrationFee - gasUsed)
       expect(currentContractBalance).to.equal(initialContractBalance + registrationFee)
@@ -181,16 +181,18 @@ describe('Presale', function () {
         presale.connect(addr1).setSettings(startDate, endDate, maxRegistrations, registrationFee)
       ).to.be.revertedWithCustomError(presale, 'OwnableUnauthorizedAccount')
     })
+  })
 
+  describe('Withdraw funds', function () {
     it('Should allow the owner to withdraw funds in ETH', async function () {
       await presale.connect(addr1).register({ value: registrationFee })
-      const initialBalance = await ethers.provider.getBalance(owner.getAddress())
+      const initialBalance = await ethers.provider.getBalance(ownerAddress)
 
       const tx = await presale.connect(owner).withdrawFunds(registrationFee)
       const txReceipt: any = await tx.wait()
       const gasUsed = txReceipt.gasUsed * tx.gasPrice
 
-      const finalBalance = await ethers.provider.getBalance(owner.getAddress())
+      const finalBalance = await ethers.provider.getBalance(ownerAddress)
       expect(finalBalance).to.equal(initialBalance - gasUsed + registrationFee)
     })
 
@@ -220,22 +222,22 @@ describe('Presale', function () {
 
   describe('Ownership', function () {
     it('Should set the correct owner on deploy', async function () {
-      expect(await presale.owner()).to.equal(await owner.getAddress())
+      expect(await presale.owner()).to.equal(ownerAddress)
     })
 
     it('Should transfer ownership correctly', async function () {
-      await presale.connect(owner).transferOwnership(addr1.getAddress())
+      await presale.connect(owner).transferOwnership(addr1Address)
       await presale.connect(addr1).acceptOwnership()
-      expect(await presale.owner()).to.equal(await addr1.getAddress())
+      expect(await presale.owner()).to.equal(addr1Address)
     })
 
     it('Should prevent non-owners from transferring ownership', async function () {
-      await expect(presale.connect(addr1).transferOwnership(addr1.getAddress())).to.be.reverted
+      await expect(presale.connect(addr1).transferOwnership(addr1Address)).to.be.reverted
     })
 
     it('Should prevent ownership transfer without confirmation', async function () {
-      await presale.connect(owner).transferOwnership(await addr1.getAddress())
-      expect(await presale.owner()).to.equal(await owner.getAddress())
+      await presale.connect(owner).transferOwnership(addr1Address)
+      expect(await presale.owner()).to.equal(ownerAddress)
     })
   })
 })
