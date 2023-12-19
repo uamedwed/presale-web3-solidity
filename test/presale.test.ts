@@ -217,4 +217,25 @@ describe('Presale', function () {
       )
     })
   })
+
+  describe('Ownership', function () {
+    it('Should set the correct owner on deploy', async function () {
+      expect(await presale.owner()).to.equal(await owner.getAddress())
+    })
+
+    it('Should transfer ownership correctly', async function () {
+      await presale.connect(owner).transferOwnership(addr1.getAddress())
+      await presale.connect(addr1).acceptOwnership()
+      expect(await presale.owner()).to.equal(await addr1.getAddress())
+    })
+
+    it('Should prevent non-owners from transferring ownership', async function () {
+      await expect(presale.connect(addr1).transferOwnership(addr1.getAddress())).to.be.reverted
+    })
+
+    it('Should prevent ownership transfer without confirmation', async function () {
+      await presale.connect(owner).transferOwnership(await addr1.getAddress())
+      expect(await presale.owner()).to.equal(await owner.getAddress())
+    })
+  })
 })
