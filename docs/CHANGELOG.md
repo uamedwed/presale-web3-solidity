@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/uamedwed/presale-web3-solidity/compare/v1.2.0...v1.2.1) (2023-12-19)
+
+
+### Bug Fixes
+
+* change ownable to second step ownable model ([4846bd0](https://github.com/uamedwed/presale-web3-solidity/commit/4846bd053f5dd33b5d021b522ba05a0ceada2fba))
+
+
+### Refactors
+
+* change get address functions in tests ([6a36608](https://github.com/uamedwed/presale-web3-solidity/commit/6a366080d55e63338e7c1f9faa6c94aa0cc99b5c))
+
 ## [1.2.0](https://github.com/uamedwed/presale-web3-solidity/compare/v1.1.0...v1.2.0) (2023-12-18)
 
 
