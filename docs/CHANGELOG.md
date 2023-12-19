@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.2](https://github.com/uamedwed/presale-web3-solidity/compare/v1.2.1...v1.2.2) (2023-12-19)
+
+
+### Documentation
+
+* add informations about contract to readme.md ([199476b](https://github.com/uamedwed/presale-web3-solidity/commit/199476b9527b5565aea614089044c2a0defa48a6))
+
 ### [1.2.1](https://github.com/uamedwed/presale-web3-solidity/compare/v1.2.0...v1.2.1) (2023-12-19)
 
 
