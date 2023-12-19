@@ -2,11 +2,11 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/utils/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
-contract Presale is Pausable, Ownable, ReentrancyGuard {
+contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
   int public immutable VERSION = 1;
 
   struct Registration {
