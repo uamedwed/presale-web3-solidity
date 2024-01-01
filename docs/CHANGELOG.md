@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.3.0](https://github.com/uamedwed/presale-web3-solidity/compare/v1.2.2...v1.3.0) (2024-01-01)
+
+
+### Features
+
+* add whitelist functionality ([3ccd77a](https://github.com/uamedwed/presale-web3-solidity/commit/3ccd77ab4d52a9b747bc594c7952b632f4c956e0))
+
 ### [1.2.2](https://github.com/uamedwed/presale-web3-solidity/compare/v1.2.1...v1.2.2) (2023-12-19)
 
 
