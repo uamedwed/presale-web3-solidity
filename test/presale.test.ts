@@ -17,6 +17,7 @@ describe('Presale', function () {
   const endDate = Math.floor((new Date().getTime() + 5 * 24 * 60 * 60 * 1000) / 1000)
   const maxRegistrations = 13
   const registrationFee = ethers.parseEther('0.1')
+  const whitelistStatusInit = false
 
   beforeEach(async () => {
     PresaleFactory = await ethers.getContractFactory('Presale')
@@ -24,7 +25,13 @@ describe('Presale', function () {
     ownerAddress = await owner.getAddress()
     addr1Address = await addr1.getAddress()
     addr2Address = await addr2.getAddress()
-    presale = (await PresaleFactory.deploy(startDate, endDate, maxRegistrations, registrationFee)) as Presale
+    presale = (await PresaleFactory.deploy(
+      startDate,
+      endDate,
+      maxRegistrations,
+      registrationFee,
+      whitelistStatusInit
+    )) as Presale
   })
 
   describe('Deployment', function () {
@@ -238,6 +245,181 @@ describe('Presale', function () {
     it('Should prevent ownership transfer without confirmation', async function () {
       await presale.connect(owner).transferOwnership(addr1Address)
       expect(await presale.owner()).to.equal(ownerAddress)
+    })
+  })
+
+  describe('Whitelist', function () {
+    it('Should correct return status of whitelist', async function () {
+      expect(await presale.whitelistStatus()).to.equal(whitelistStatusInit)
+    })
+
+    describe('Management settings of Whitelist', function () {
+      it('Should allow owner to turn on whitelist', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        expect(await presale.whitelistStatus()).to.be.true
+      })
+
+      it('Should emit the correct event after owner to turn on whitelist', async function () {
+        expect(await presale.connect(owner).turnOnWhitelist()).to.emit(presale, 'WhitelistTurnedOn')
+      })
+
+      it('Should emit the correct event after owner to turn off whitelist', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        expect(await presale.connect(owner).turnOffWhitelist()).to.emit(presale, 'WhitelistTurnedOff')
+      })
+
+      it('Should not allow non-owners turn on whitelist', async function () {
+        await expect(presale.connect(addr1).turnOnWhitelist()).to.be.revertedWithCustomError(
+          presale,
+          'OwnableUnauthorizedAccount'
+        )
+      })
+
+      it('Should not allow to turn on if whitelist is not turn off', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        await expect(presale.connect(owner).turnOnWhitelist()).to.be.revertedWithCustomError(
+          presale,
+          'EnforcedWhitelist'
+        )
+      })
+
+      it('Should allow owner to turn off whitelist', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        await presale.connect(owner).turnOffWhitelist()
+        expect(await presale.whitelistStatus()).to.be.false
+      })
+
+      it('Should not allow non-owners turn off whitelist', async function () {
+        await expect(presale.connect(addr1).turnOffWhitelist()).to.be.revertedWithCustomError(
+          presale,
+          'OwnableUnauthorizedAccount'
+        )
+      })
+
+      it('Should not allow to turn off if whitelist is not turn on', async function () {
+        await expect(presale.connect(owner).turnOffWhitelist()).to.be.revertedWithCustomError(
+          presale,
+          'ExpectedWhitelist'
+        )
+      })
+    })
+
+    describe('Management whitelist', function () {
+      it('Should allow owner to add address to whitelist', async function () {
+        await presale.connect(owner).addToWhiteList(addr1Address)
+        expect(await presale.isAddressWhitelisted(addr1Address)).to.be.true
+      })
+
+      it('Should emit the correct event after add address to whitelist', async function () {
+        expect(await presale.connect(owner).addToWhiteList(addr1Address))
+          .to.emit(presale, 'AddedToWhitelist')
+          .withArgs(addr1Address)
+      })
+
+      it('Should not allow non-owners to add address to whitelist', async function () {
+        await expect(presale.connect(addr1).addToWhiteList(addr1Address)).to.be.revertedWithCustomError(
+          presale,
+          'OwnableUnauthorizedAccount'
+        )
+      })
+
+      it('Should allow owner to add array of addresses to whitelist', async function () {
+        await presale.connect(owner).addBatchToWhitelist([addr1Address, addr2Address])
+        expect(await presale.isAddressWhitelisted(addr1Address)).to.be.true
+        expect(await presale.isAddressWhitelisted(addr2Address)).to.be.true
+      })
+
+      it('Should emit the correct event after add array of addresses to whitelist', async function () {
+        expect(await presale.connect(owner).addBatchToWhitelist([addr1Address, addr2Address]))
+          .to.emit(presale, 'AddedToWhitelist')
+          .withArgs(addr1Address)
+          .and.to.emit(presale, 'AddedToWhitelist')
+          .withArgs(addr2Address)
+      })
+
+      it('Should not allow non-owners to add array of addresses to whitelist', async function () {
+        await expect(
+          presale.connect(addr1).addBatchToWhitelist([addr1Address, addr2Address])
+        ).to.be.revertedWithCustomError(presale, 'OwnableUnauthorizedAccount')
+      })
+
+      it('Should allow owner to remove address from whitelist', async function () {
+        await presale.connect(owner).addToWhiteList(addr1Address)
+        await presale.connect(owner).removeFromWhitelist(addr1Address)
+        expect(await presale.isAddressWhitelisted(addr1Address)).to.be.false
+      })
+
+      it('Should emit the correct event after remove address from whitelist', async function () {
+        await presale.connect(owner).addToWhiteList(addr1Address)
+        expect(await presale.connect(owner).removeFromWhitelist(addr1Address))
+          .to.emit(presale, 'RemovedFromWhitelist')
+          .withArgs(addr1Address)
+      })
+
+      it('Should not allow non-owners to remove address from whitelist', async function () {
+        await expect(presale.connect(addr1).removeFromWhitelist(addr1Address)).to.be.revertedWithCustomError(
+          presale,
+          'OwnableUnauthorizedAccount'
+        )
+      })
+
+      it('Should allow owner to remove array of addresses from whitelist', async function () {
+        await presale.connect(owner).addBatchToWhitelist([addr1Address, addr2Address])
+        await presale.connect(owner).removeBatchFromWhiteList([addr1Address, addr2Address])
+        expect(await presale.isAddressWhitelisted(addr1Address)).to.be.false
+        expect(await presale.isAddressWhitelisted(addr2Address)).to.be.false
+      })
+
+      it('Should emit the correct event after remove array of addresses from whitelist', async function () {
+        expect(await presale.connect(owner).removeBatchFromWhiteList([addr1Address, addr2Address]))
+          .to.emit(presale, 'RemovedFromWhitelist')
+          .withArgs(addr1Address)
+          .and.to.emit(presale, 'RemovedFromWhitelist')
+          .withArgs(addr2Address)
+      })
+
+      it('Should not allow non-owners to remove array of addresses from whitelist', async function () {
+        await expect(
+          presale.connect(addr1).removeBatchFromWhiteList([addr1Address, addr2Address])
+        ).to.be.revertedWithCustomError(presale, 'OwnableUnauthorizedAccount')
+      })
+
+      it('Should not allow to add address to whitelist if address is exists', async function () {
+        await presale.connect(owner).addToWhiteList(addr1Address)
+        await expect(presale.connect(owner).addToWhiteList(addr1Address)).to.be.revertedWithCustomError(
+          presale,
+          'UserAlreadyWhitelisted'
+        )
+      })
+
+      it('Should not allow to remove address from whitelist if address is not exists', async function () {
+        await expect(presale.connect(owner).removeFromWhitelist(addr1Address)).to.be.revertedWithCustomError(
+          presale,
+          'UserIsNotWhitelisted'
+        )
+      })
+
+      it('Should allow check address in whitelist', async function () {
+        await presale.connect(owner).addToWhiteList(addr2Address)
+        expect(await presale.isAddressWhitelisted(addr1Address)).to.be.false
+        expect(await presale.isAddressWhitelisted(addr2Address)).to.be.true
+      })
+    })
+
+    describe('Whitelist in Presale', function () {
+      it('Should not allow register user on Presale if whitelist is on', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        await expect(presale.connect(addr1).register({ value: registrationFee }))
+          .to.be.revertedWithCustomError(presale, 'UserIsNotWhitelisted')
+          .withArgs(addr1Address)
+      })
+
+      it('Should allow register user on Presale if whitelist is on and user in whitelist', async function () {
+        await presale.connect(owner).turnOnWhitelist()
+        await presale.connect(owner).addToWhiteList(addr1Address)
+        await presale.connect(addr1).register({ value: registrationFee })
+        expect((await presale.connect(addr1).checkRegistration(addr1Address)).user).to.equal(addr1Address)
+      })
     })
   })
 })

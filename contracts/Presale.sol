@@ -5,8 +5,9 @@ import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable2Step.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "./Whitelist.sol";
 
-contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
+contract Presale is Pausable, Ownable2Step, ReentrancyGuard, Whitelist {
   int public immutable VERSION = 1;
 
   struct Registration {
@@ -83,6 +84,7 @@ contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
     }
     _;
   }
+
   /// @dev Ensure the presale active.
   modifier onlyPresaleActive() {
     if (block.timestamp < startDate || block.timestamp > endDate) {
@@ -133,7 +135,13 @@ contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
   /// @notice Emitted when owner withdraw amount from contract.
   event Withdrawal(uint indexed amount, uint timestamp);
 
-  constructor(uint _startDate, uint _endDate, uint _maxRegistrations, uint _registrationFee) Ownable(msg.sender) {
+  constructor(
+    uint _startDate,
+    uint _endDate,
+    uint _maxRegistrations,
+    uint _registrationFee,
+    bool _whitelistStatusInit
+  ) Ownable(msg.sender) Whitelist(_whitelistStatusInit) {
     startDate = _startDate;
     endDate = _endDate;
     maxRegistrations = _maxRegistrations;
@@ -160,6 +168,7 @@ contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
     onlyPresaleActive
     onlyCorrectRegistrationCount
     whenNotPaused
+    onlyWhitelisted(msg.sender)
   {
     Registration memory registration;
     registration.user = msg.sender;
@@ -221,5 +230,39 @@ contract Presale is Pausable, Ownable2Step, ReentrancyGuard {
   function withdrawFunds(uint amount) external onlyAvailableBalance(amount) onlyOwner nonReentrant {
     Address.sendValue(payable(msg.sender), amount);
     emit Withdrawal(amount, block.timestamp);
+  }
+
+  /// @notice Turn on whitelist.
+  function turnOnWhitelist() external onlyOwner whenWhitelistOff {
+    _turnOnWhitelist();
+  }
+
+  /// @notice Turn off whitelist.
+  function turnOffWhitelist() external onlyOwner whenWhitelistOn {
+    _turnOffWhitelist();
+  }
+
+  /// @notice Add address to whitelist.
+  /// @param _address Address for adding to whitelist
+  function addToWhiteList(address _address) external onlyOwner {
+    _addToWhiteList(_address);
+  }
+
+  /// @notice Add few addresses to whitelist.
+  /// @param _addresses array of addresses adding to whitelist
+  function addBatchToWhitelist(address[] memory _addresses) external onlyOwner {
+    _addBatchToWhitelist(_addresses);
+  }
+
+  /// @notice Remove address from whitelist.
+  /// @param _address Address for removing from whitelist
+  function removeFromWhitelist(address _address) external onlyOwner {
+    _removeFromWhitelist(_address);
+  }
+
+  /// @notice Remove few addresses from whitelist.
+  /// @param _addresses array of addresses removing from whitelist
+  function removeBatchFromWhiteList(address[] memory _addresses) external onlyOwner {
+    _removeBatchFromWhiteList(_addresses);
   }
 }
